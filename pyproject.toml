@@ -1,0 +1,17 @@
+[project]
+name = "application-of-deep-learning-image"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "datasets>=5.0.0",
+    "fiftyone>=1.17.0",
+    "ipykernel>=7.2.0",
+    "jupyter>=1.1.1",
+    "kagglehub>=1.0.2",
+    "matplotlib>=3.10.9",
+    "numpy>=2.4.4",
+    "pandas>=3.0.3",
+    "seaborn>=0.13.2",
+]
