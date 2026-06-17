@@ -5,14 +5,18 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "beautifulsoup4>=4.15.0",
     "datasets>=5.0.0",
     "ee>=0.2",
     "fiftyone>=1.17.0",
+    "html5lib>=1.1",
     "ipykernel>=7.2.0",
     "jupyter>=1.1.1",
     "kagglehub>=1.0.2",
+    "lxml>=6.1.1",
     "matplotlib>=3.10.9",
     "numpy>=2.4.4",
     "pandas>=3.0.3",
     "seaborn>=0.13.2",
+    "yfinance>=1.4.1",
 ]
