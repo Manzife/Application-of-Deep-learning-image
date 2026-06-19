@@ -15,19 +15,17 @@ Segment parking spaces in aerial/satellite images and track occupancy over time,
       │                 Data/walmart_test/       Data/raw/ (PKLot)
       │
       ▼
- 4. Exploratory Model                    5. Inference
- exploratory_model.ipynb        →        inference.ipynb
- trains ResNet34 U-Net                   runs on walmart_test
- on PKLot dataset                        images, tracks occupancy
-      │
-      ▼
- checkpoints/resnet34_unet_best.pth
-
- 6. Fine-Tuning Model
- fine_tuning_model.ipynb
- loads resnet34_unet_best.pth  →  fine-tunes on Data/walmart-1/
- tests on walmart_test satellite images
- saves checkpoints/resnet34_unet_walmart_ft.pth
+ 4. Exploratory Model           6. Fine-Tuning Model
+ exploratory_model.ipynb   →   fine_tuning_model.ipynb
+ trains ResNet34 U-Net         fine-tunes on Data/walmart-1/
+ on PKLot dataset              saves resnet34_unet_walmart_ft.pth
+      │                                    │
+      ▼                                    ▼
+ checkpoints/                      5. Inference
+ resnet34_unet_best.pth    →       inference.ipynb
+                                   uses fine-tuned checkpoint
+                                   runs on walmart_test images
+                                   tracks occupancy over time
 ```
 
 ---
@@ -57,7 +55,7 @@ Segment parking spaces in aerial/satellite images and track occupancy over time,
 
 ### `notebooks/inference.ipynb`
 
-Loads `resnet34_unet_best.pth` and runs it on the Walmart satellite images downloaded in step 2. Outputs per-image segmentation overlays and an **occupancy rate trend** across years. Also includes Test-Time Augmentation (TTA) experiments (single-angle and combined) to improve predictions on real-world imagery.
+Loads `resnet34_unet_walmart_ft.pth` (fine-tuned checkpoint) and runs it on the Walmart satellite images downloaded in step 2. Falls back to `resnet34_unet_best.pth` automatically if the fine-tuned checkpoint is missing. Outputs per-image segmentation overlays and an **occupancy rate trend** across years. Also includes Test-Time Augmentation (TTA) experiments (single-angle and combined) to improve predictions on real-world imagery.
 
 ---
 
@@ -71,7 +69,7 @@ Loads `resnet34_unet_best.pth` and runs it on the Walmart satellite images downl
 
 ---
 
-## Model
+## Models
 
 **Architecture:** ResNet-34 encoder + U-Net decoder (via `segmentation-models-pytorch`)
 
@@ -81,32 +79,29 @@ Loads `resnet34_unet_best.pth` and runs it on the Walmart satellite images downl
 | Output | 3-class pixel mask: `background` / `space-empty` / `space-occupied` |
 | Loss | CrossEntropyLoss |
 | Metric | Mean IoU |
-| Best val mIoU | 0.921 |
-| Test mIoU | 0.906 (pixel acc 97.5%) |
 
-Training runs on a 5% subsample of PKLot for speed; set `SUBSET_FRACTION = 1.0` in the notebook for full training.
+### Exploratory model — `resnet34_unet_best.pth`
+
+Trained on PKLot (university parking lots, COCO format). Uses a 5% subsample by default; set `SUBSET_FRACTION = 1.0` for full training.
+
+| Metric | Value |
+|---|---|
+| Best val mIoU | 0.921 |
+| Test mIoU | 0.906 |
+| Test pixel accuracy | 97.5% |
+
+### Fine-tuned model — `resnet34_unet_walmart_ft.pth`
+
+Starts from the exploratory checkpoint and fine-tunes on the walmart-1 Roboflow dataset (40 train images, YOLO format). Two-phase strategy keeps the encoder frozen in phase 1 to avoid catastrophic forgetting on the small dataset.
+
+| Phase | Encoder | LR |
+|---|---|---|
+| 1 — decoder only (20 epochs) | Frozen | `1e-3` |
+| 2 — full network (15 epochs) | Unfrozen | `5e-6` encoder / `5e-5` decoder |
+
+This is the checkpoint used by `inference.ipynb`.
 
 ---
-
-## Fine-Tuning Details (`fine_tuning_model.ipynb`)
-
-The exploratory model was trained on **PKLot** (university parking lots, fixed camera). Fine-tuning on `walmart-1` adapts it to Walmart-specific parking layouts.
-
-**Class mapping** from YOLO to the 3-class model head:
-
-| walmart-1 YOLO | id | → model class | id |
-|---|---|---|---|
-| `car` | 0 | `space-occupied` | 2 |
-| `free_space` | 1 | `space-empty` | 1 |
-
-**Two-phase training** (small dataset = 40 images, so catastrophic forgetting is a real risk):
-
-| Phase | Encoder | Decoder/Head | LR |
-|---|---|---|---|
-| 1 (20 epochs) | Frozen | Training | `1e-3` |
-| 2 (15 epochs) | Unfrozen | Training | `5e-6` / `5e-5` (differential) |
-
-**Output checkpoint:** `checkpoints/resnet34_unet_walmart_ft.pth`
 
 ---
 
