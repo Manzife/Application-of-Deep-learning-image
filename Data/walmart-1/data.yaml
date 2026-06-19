@@ -1,0 +1,13 @@
+names:
+- car
+- free_space
+nc: 2
+roboflow:
+  license: CC BY 4.0
+  project: walmart
+  url: https://universe.roboflow.com/sep-gruppe-pb6fz/walmart/dataset/1
+  version: 1
+  workspace: sep-gruppe-pb6fz
+test: ../test/images
+train: ../train/images
+val: ../valid/images
