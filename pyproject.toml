@@ -8,6 +8,7 @@ dependencies = [
     "albumentations>=2.0.8",
     "beautifulsoup4>=4.15.0",
     "datasets>=5.0.0",
+    "earthengine-api>=1.7.31",
     "ee>=0.2",
     "fiftyone>=1.17.0",
     "html5lib>=1.1",
